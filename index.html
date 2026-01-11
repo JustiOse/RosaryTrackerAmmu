@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rosary Tracker</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            padding: 15px;
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: #f5f7fa;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .mary-image {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #1565c0;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 15px rgba(21, 101, 192, 0.3);
+        }
+        h1 {
+            text-align: center;
+            font-size: 24px;
+            margin: 10px 0;
+            color: #1565c0;
+        }
+        .intention-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .intention-input {
+            width: 100%;
+            max-width: 500px;
+            padding: 10px 15px;
+            font-size: 15px;
+            border: 2px solid #1976d2;
+            border-radius: 8px;
+            text-align: center;
+            background-color: #e3f2fd;
+            color: #0d47a1;
+            font-style: italic;
+        }
+        .intention-input:focus {
+            outline: none;
+            border-color: #0d47a1;
+            background-color: #bbdefb;
+        }
+        .intention-input::placeholder {
+            color: #64b5f6;
+        }
+        .progress-container {
+            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(21, 101, 192, 0.3);
+        }
+        .progress-bar-bg {
+            background-color: rgba(255,255,255,0.3);
+            border-radius: 10px;
+            height: 25px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        .progress-bar {
+            background-color: #4CAF50;
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+            margin-top: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .stat-item {
+            flex: 1;
+            min-width: 70px;
+        }
+        .stat-item h3 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .stat-item p {
+            margin: 5px 0 0 0;
+            font-size: 11px;
+            opacity: 0.9;
+        }
+        .dates-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .date-field {
+            flex: 1;
+            min-width: 150px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .date-field label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 13px;
+        }
+        .date-field input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        th {
+            background-color: #1976d2;
+            color: white;
+            padding: 12px 6px;
+            font-size: 11px;
+        }
+        th.litany-header {
+            background-color: #0d47a1;
+        }
+        td {
+            border: 1px solid #eee;
+            padding: 8px 4px;
+            text-align: center;
+            vertical-align: middle;
+        }
+        .round-num {
+            font-weight: bold;
+            background-color: #f8f9fa;
+            width: 40px;
+        }
+        .mystery-cell {
+            cursor: pointer;
+        }
+        .checkbox {
+            display: inline-block;
+            width: 22px;
+            height: 22px;
+            margin: 1px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 22px;
+            transition: all 0.2s;
+            user-select: none;
+            font-weight: bold;
+        }
+        .checkbox.unchecked {
+            background-color: #e0e0e0;
+            color: #999;
+        }
+        .checkbox.checked {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .checkbox:hover {
+            transform: scale(1.1);
+        }
+        .checkbox:active {
+            transform: scale(0.95);
+        }
+        .litany-cell {
+            background-color: #e3f2fd;
+        }
+        .litany-checkbox {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            margin: 2px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 30px;
+            transition: all 0.2s;
+            user-select: none;
+            font-weight: bold;
+            border: 2px solid #1976d2;
+        }
+        .litany-checkbox.unchecked {
+            background-color: white;
+            color: #ccc;
+        }
+        .litany-checkbox.checked {
+            background-color: #1976d2;
+            color: white;
+        }
+        .litany-checkbox:hover {
+            transform: scale(1.1);
+        }
+        .rosary-count {
+            font-size: 10px;
+            color: #666;
+            margin-top: 4px;
+        }
+        .completed-row {
+            background-color: #e8f5e9 !important;
+        }
+        .completed-row td {
+            background-color: #e8f5e9;
+        }
+        .completed-row .litany-cell {
+            background-color: #c8e6c9;
+        }
+        .buttons {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .btn {
+            padding: 12px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        .btn-reset {
+            background-color: #f44336;
+            color: white;
+        }
+        .btn-reset:hover {
+            background-color: #d32f2f;
+        }
+        .btn-export {
+            background-color: #1976d2;
+            color: white;
+        }
+        .btn-export:hover {
+            background-color: #1565c0;
+        }
+        .btn-import {
+            background-color: #ff9800;
+            color: white;
+        }
+        .btn-import:hover {
+            background-color: #f57c00;
+        }
+        .notes-container {
+            margin-top: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .notes-container label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        .notes-container textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 80px;
+        }
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            font-size: 12px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .legend-box {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+        }
+        .legend-circle {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+        }
+        .save-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 14px;
+            z-index: 1000;
+        }
+        .save-indicator.show {
+            opacity: 1;
+        }
+        .section-title {
+            font-weight: bold;
+            color: #1565c0;
+            margin: 20px 0 10px 0;
+            font-size: 16px;
+        }
+        .hidden {
+            display: none;
+        }
+        #importFile {
+            display: none;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 15px;
+            color: #666;
+            font-size: 12px;
+            border-top: 1px solid #ddd;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 8px;
+            }
+            h1 {
+                font-size: 20px;
+            }
+            .mary-image {
+                width: 80px;
+                height: 80px;
+            }
+            .intention-input {
+                font-size: 13px;
+                padding: 8px 12px;
+            }
+            th {
+                font-size: 9px;
+                padding: 8px 2px;
+            }
+            td {
+                padding: 6px 2px;
+            }
+            .checkbox {
+                width: 18px;
+                height: 18px;
+                font-size: 11px;
+                line-height: 18px;
+                margin: 1px;
+            }
+            .litany-checkbox {
+                width: 26px;
+                height: 26px;
+                font-size: 14px;
+                line-height: 26px;
+            }
+            .stat-item h3 {
+                font-size: 20px;
+            }
+            .stat-item p {
+                font-size: 9px;
+            }
+            .btn {
+                padding: 10px 12px;
+                font-size: 11px;
+                margin: 3px;
+            }
+            .rosary-count {
+                font-size: 9px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Our_Lady_of_F%C3%A1tima.jpg/440px-Our_Lady_of_F%C3%A1tima.jpg" alt="Our Lady of Fatima" class="mary-image" onerror="this.style.display='none'">
+        <h1>Rosary Tracker</h1>
+    </div>
+    
+    <div class="intention-container">
+        <input type="text" id="intention" class="intention-input" placeholder="Enter your prayer intention here..." onchange="saveData()" onkeyup="saveData()">
+    </div>
+
+    <div class="progress-container">
+        <div style="text-align: center; margin-bottom: 10px; font-weight: bold;">Overall Progress</div>
+        <div class="progress-bar-bg">
+            <div class="progress-bar" id="progressBar">0%</div>
+        </div>
+        <div class="stats">
+            <div class="stat-item">
+                <h3 id="rosaryCount">0</h3>
+                <p>Rosaries / 100</p>
+            </div>
+            <div class="stat-item">
+                <h3 id="mysteryCount">0</h3>
+                <p>Mysteries / 500</p>
+            </div>
+            <div class="stat-item">
+                <h3 id="litanyCount">0</h3>
+                <p>Litanies / 25</p>
+            </div>
+            <div class="stat-item">
+                <h3 id="roundCount">0</h3>
+                <p>Rounds / 25</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-title">Dates</div>
+    <div class="dates-container">
+        <div class="date-field">
+            <label>Start Date</label>
+            <input type="date" id="startDate" onchange="saveData()">
+        </div>
+        <div class="date-field">
+            <label>Target Date</label>
+            <input type="date" id="targetDate" onchange="saveData()">
+        </div>
+        <div class="date-field">
+            <label>Completion Date</label>
+            <input type="date" id="endDate" onchange="saveData()">
+        </div>
+    </div>
+
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-box" style="background-color: #e0e0e0;"></div>
+            <span>Pending</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-box" style="background-color: #4CAF50;"></div>
+            <span>Completed</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-circle" style="background-color: #1976d2;"></div>
+            <span>Litany</span>
+        </div>
+    </div>
+
+    <table id="trackerTable">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Joyful</th>
+                <th>Luminous</th>
+                <th>Sorrowful</th>
+                <th>Glorious</th>
+                <th class="litany-header">Litany</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+        </tbody>
+    </table>
+
+    <div class="notes-container">
+        <label>Notes / Intentions</label>
+        <textarea id="notes" placeholder="Write your prayer intentions or notes here..." onchange="saveData()"></textarea>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-export" onclick="exportData()">Export Data</button>
+        <button class="btn btn-import" onclick="document.getElementById('importFile').click()">Import Data</button>
+        <button class="btn btn-reset" onclick="resetData()">Reset All</button>
+        <input type="file" id="importFile" accept=".json" onchange="importData(event)">
+    </div>
+
+    <div class="save-indicator" id="saveIndicator">Saved!</div>
+
+    <script>
+        var TOTAL_ROUNDS = 25;
+        var MYSTERIES_PER_ROSARY = 5;
+        var ROSARY_TYPES = ['joyful', 'luminous', 'sorrowful', 'glorious'];
+        
+        var data = {
+            checkboxes: {},
+            litany: {},
+            intention: '',
+            startDate: '',
+            targetDate: '',
+            endDate: '',
+            notes: ''
+        };
+
+        function init() {
+            loadData();
+            renderTable();
+            updateStats();
+        }
+
+        function renderTable() {
+            var tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            for (var round = 1; round <= TOTAL_ROUNDS; round++) {
+                var row = document.createElement('tr');
+                row.id = 'row-' + round;
+                
+                var roundCell = document.createElement('td');
+                roundCell.className = 'round-num';
+                roundCell.textContent = round;
+                row.appendChild(roundCell);
+
+                for (var t = 0; t < ROSARY_TYPES.length; t++) {
+                    var type = ROSARY_TYPES[t];
+                    var cell = document.createElement('td');
+                    cell.className = 'mystery-cell';
+                    
+                    var checkboxContainer = document.createElement('div');
+                    
+                    for (var m = 1; m <= MYSTERIES_PER_ROSARY; m++) {
+                        var checkbox = document.createElement('span');
+                        checkbox.className = 'checkbox';
+                        var key = round + '-' + type + '-' + m;
+                        checkbox.id = key;
+                        checkbox.setAttribute('data-key', key);
+                        checkbox.onclick = function() {
+                            toggleCheckbox(this.getAttribute('data-key'));
+                        };
+                        
+                        if (data.checkboxes[key]) {
+                            checkbox.className = 'checkbox checked';
+                            checkbox.textContent = 'X';
+                        } else {
+                            checkbox.className = 'checkbox unchecked';
+                            checkbox.textContent = '';
+                        }
+                        
+                        checkboxContainer.appendChild(checkbox);
+                    }
+
+                    var countDiv = document.createElement('div');
+                    countDiv.className = 'rosary-count';
+                    countDiv.id = 'count-' + round + '-' + type;
+                    var completed = countCompletedMysteries(round, type);
+                    countDiv.textContent = completed + '/5';
+                    
+                    cell.appendChild(checkboxContainer);
+                    cell.appendChild(countDiv);
+                    row.appendChild(cell);
+                }
+
+                var litanyCell = document.createElement('td');
+                litanyCell.className = 'litany-cell';
+                
+                var litanyCheckbox = document.createElement('span');
+                var litanyKey = 'litany-' + round;
+                litanyCheckbox.id = litanyKey;
+                litanyCheckbox.setAttribute('data-round', round);
+                litanyCheckbox.onclick = function() {
+                    toggleLitany(this.getAttribute('data-round'));
+                };
+                
+                if (data.litany[round]) {
+                    litanyCheckbox.className = 'litany-checkbox checked';
+                    litanyCheckbox.textContent = 'X';
+                } else {
+                    litanyCheckbox.className = 'litany-checkbox unchecked';
+                    litanyCheckbox.textContent = '';
+                }
+                
+                litanyCell.appendChild(litanyCheckbox);
+                row.appendChild(litanyCell);
+
+                tbody.appendChild(row);
+                updateRowStyle(round);
+            }
+        }
+
+        function toggleCheckbox(key) {
+            data.checkboxes[key] = !data.checkboxes[key];
+            
+            var checkbox = document.getElementById(key);
+            if (data.checkboxes[key]) {
+                checkbox.className = 'checkbox checked';
+                checkbox.textContent = 'X';
+            } else {
+                checkbox.className = 'checkbox unchecked';
+                checkbox.textContent = '';
+            }
+
+            var parts = key.split('-');
+            var round = parseInt(parts[0]);
+            var type = parts[1];
+
+            var countDiv = document.getElementById('count-' + round + '-' + type);
+            var completed = countCompletedMysteries(round, type);
+            countDiv.textContent = completed + '/5';
+
+            updateRowStyle(round);
+            updateStats();
+            saveData();
+        }
+
+        function toggleLitany(round) {
+            round = parseInt(round);
+            data.litany[round] = !data.litany[round];
+            
+            var litanyCheckbox = document.getElementById('litany-' + round);
+            if (data.litany[round]) {
+                litanyCheckbox.className = 'litany-checkbox checked';
+                litanyCheckbox.textContent = 'X';
+            } else {
+                litanyCheckbox.className = 'litany-checkbox unchecked';
+                litanyCheckbox.textContent = '';
+            }
+
+            updateRowStyle(round);
+            updateStats();
+            saveData();
+        }
+
+        function countCompletedMysteries(round, type) {
+            var count = 0;
+            for (var m = 1; m <= MYSTERIES_PER_ROSARY; m++) {
+                if (data.checkboxes[round + '-' + type + '-' + m]) {
+                    count++;
+                }
+            }
+            return count;
+        }
+
+        function isRosaryComplete(round, type) {
+            return countCompletedMysteries(round, type) === MYSTERIES_PER_ROSARY;
+        }
+
+        function isRoundComplete(round) {
+            for (var t = 0; t < ROSARY_TYPES.length; t++) {
+                if (!isRosaryComplete(round, ROSARY_TYPES[t])) {
+                    return false;
+                }
+            }
+            if (!data.litany[round]) {
+                return false;
+            }
+            return true;
+        }
+
+        function updateRowStyle(round) {
+            var row = document.getElementById('row-' + round);
+            if (isRoundComplete(round)) {
+                row.classList.add('completed-row');
+            } else {
+                row.classList.remove('completed-row');
+            }
+        }
+
+        function updateStats() {
+            var totalMysteries = 0;
+            var totalRosaries = 0;
+            var totalRounds = 0;
+            var totalLitanies = 0;
+
+            for (var round = 1; round <= TOTAL_ROUNDS; round++) {
+                var roundComplete = true;
+                
+                for (var t = 0; t < ROSARY_TYPES.length; t++) {
+                    var type = ROSARY_TYPES[t];
+                    var completed = countCompletedMysteries(round, type);
+                    totalMysteries += completed;
+                    
+                    if (completed === MYSTERIES_PER_ROSARY) {
+                        totalRosaries++;
+                    } else {
+                        roundComplete = false;
+                    }
+                }
+
+                if (data.litany[round]) {
+                    totalLitanies++;
+                } else {
+                    roundComplete = false;
+                }
+
+                if (roundComplete) {
+                    totalRounds++;
+                }
+            }
+
+            document.getElementById('mysteryCount').textContent = totalMysteries;
+            document.getElementById('rosaryCount').textContent = totalRosaries;
+            document.getElementById('litanyCount').textContent = totalLitanies;
+            document.getElementById('roundCount').textContent = totalRounds;
+
+            var percentage = Math.round((totalRosaries / 100) * 100);
+            var progressBar = document.getElementById('progressBar');
+            progressBar.style.width = Math.max(percentage, 5) + '%';
+            progressBar.textContent = percentage + '%';
+        }
+
+        function saveData() {
+            data.intention = document.getElementById('intention').value;
+            data.startDate = document.getElementById('startDate').value;
+            data.targetDate = document.getElementById('targetDate').value;
+            data.endDate = document.getElementById('endDate').value;
+            data.notes = document.getElementById('notes').value;
+            
+            try {
+                localStorage.setItem('rosaryTracker', JSON.stringify(data));
+            } catch(e) {
+                console.log('Could not save to localStorage');
+            }
+            
+            var indicator = document.getElementById('saveIndicator');
+            indicator.classList.add('show');
+            setTimeout(function() {
+                indicator.classList.remove('show');
+            }, 1500);
+        }
+
+        function loadData() {
+            try {
+                var saved = localStorage.getItem('rosaryTracker');
+                if (saved) {
+                    data = JSON.parse(saved);
+                    if (!data.litany) {
+                        data.litany = {};
+                    }
+                    document.getElementById('intention').value = data.intention || '';
+                    document.getElementById('startDate').value = data.startDate || '';
+                    document.getElementById('targetDate').value = data.targetDate || '';
+                    document.getElementById('endDate').value = data.endDate || '';
+                    document.getElementById('notes').value = data.notes || '';
+                }
+            } catch(e) {
+                console.log('Could not load from localStorage');
+            }
+        }
+
+        function resetData() {
+            if (confirm('Are you sure you want to reset all progress? This cannot be undone!')) {
+                data = {
+                    checkboxes: {},
+                    litany: {},
+                    intention: '',
+                    startDate: '',
+                    targetDate: '',
+                    endDate: '',
+                    notes: ''
+                };
+                try {
+                    localStorage.removeItem('rosaryTracker');
+                } catch(e) {}
+                document.getElementById('intention').value = '';
+                document.getElementById('startDate').value = '';
+                document.getElementById('targetDate').value = '';
+                document.getElementById('endDate').value = '';
+                document.getElementById('notes').value = '';
+                renderTable();
+                updateStats();
+            }
+        }
+
+        function exportData() {
+            var exportObj = {
+                checkboxes: data.checkboxes,
+                litany: data.litany,
+                intention: data.intention,
+                startDate: data.startDate,
+                targetDate: data.targetDate,
+                endDate: data.endDate,
+                notes: data.notes,
+                exportDate: new Date().toISOString(),
+                stats: {
+                    rosaries: document.getElementById('rosaryCount').textContent,
+                    mysteries: document.getElementById('mysteryCount').textContent,
+                    litanies: document.getElementById('litanyCount').textContent,
+                    rounds: document.getElementById('roundCount').textContent
+                }
+            };
+            
+            var dataStr = JSON.stringify(exportObj, null, 2);
+            var blob = new Blob([dataStr], {type: 'application/json'});
+            var url = URL.createObjectURL(blob);
+            
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'rosary-tracker-backup.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            URL.revokeObjectURL(url);
+        }
+
+        function importData(event) {
+            var file = event.target.files[0];
+            if (!file) return;
+            
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    var imported = JSON.parse(e.target.result);
+                    if (imported.checkboxes) {
+                        data.checkboxes = imported.checkboxes;
+                        data.litany = imported.litany || {};
+                        data.intention = imported.intention || '';
+                        data.startDate = imported.startDate || '';
+                        data.targetDate = imported.targetDate || '';
+                        data.endDate = imported.endDate || '';
+                        data.notes = imported.notes || '';
+                        
+                        document.getElementById('intention').value = data.intention;
+                        document.getElementById('startDate').value = data.startDate;
+                        document.getElementById('targetDate').value = data.targetDate;
+                        document.getElementById('endDate').value = data.endDate;
+                        document.getElementById('notes').value = data.notes;
+                        
+                        renderTable();
+                        updateStats();
+                        saveData();
+                        
+                        alert('Data imported successfully!');
+                    } else {
+                        alert('Invalid file format');
+                    }
+                } catch(err) {
+                    alert('Error reading file: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        init();
+    </script>
+</body>
+</html>
